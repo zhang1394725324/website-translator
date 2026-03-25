@@ -3,31 +3,20 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>网站翻译浏览器</title>
-
-<link rel="stylesheet" href="style.css">
-
+<title>网站翻译器</title>
+<style>
+body{ font-family:-apple-system; background:#0f1115; color:white; text-align:center; padding-top:100px;}
+input{width:400px; padding:12px; border-radius:8px; border:none;}
+button{padding:12px 20px; margin-left:10px; border:none; border-radius:8px; background:#007aff; color:white; cursor:pointer;}
+</style>
 </head>
-
 <body>
 
-<div class="topbar">
+<h1>🌍 网站翻译为中文</h1>
 
-<input
-id="url"
-type="text"
-placeholder="输入网站地址 https://example.com"
->
-
-<button id="btn">
-翻译为中文
-</button>
-
-</div>
-
-<iframe id="viewer"></iframe>
+<input id="url" placeholder="输入网站网址，例如 github.com" />
+<button id="btn">翻译为中文</button>
 
 <script src="script.js"></script>
-
 </body>
 </html>
