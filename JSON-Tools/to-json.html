@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <!-- 在页面 <head> 中添加 Font Awesome 6 免费版 -->
+     <!-- 在页面 <head> 中添加 Font Awesome 6 免费版 -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <title>专业JSON生成器 | 严格按规范命名 · 后缀自动补全</title>
+    <title>专业JSON生成器 | 拖拽排序 · 严格命名规范</title>
     <style>
         * {
             margin: 0;
@@ -203,6 +203,9 @@
             padding: 0.7rem 1rem;
             font-weight: 700;
             border-bottom: 2px solid #cbd5e1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         .param-card-header h3 {
             font-size: 1rem;
@@ -210,11 +213,18 @@
             align-items: center;
             gap: 8px;
         }
+        .drag-hint {
+            font-size: 0.7rem;
+            color: #64748b;
+            background: #e2e8f0;
+            padding: 4px 10px;
+            border-radius: 20px;
+        }
         .badge-param { background: #3b82f6; color: white; padding: 2px 10px; border-radius: 30px; font-size: 0.7rem; }
         .badge-output { background: #8b5cf6; color: white; padding: 2px 10px; border-radius: 30px; font-size: 0.7rem; }
         .param-table-header {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr 1.2fr 1.2fr 1.2fr 50px;
+            grid-template-columns: 30px 1fr 1fr 1fr 1.2fr 1.2fr 1.2fr 50px;
             gap: 8px;
             background: #f8fafc;
             padding: 8px 12px;
@@ -225,12 +235,34 @@
         }
         .param-row {
             display: grid;
-            grid-template-columns: 1fr 1fr 1fr 1.2fr 1.2fr 1.2fr 50px;
+            grid-template-columns: 30px 1fr 1fr 1fr 1.2fr 1.2fr 1.2fr 50px;
             gap: 8px;
             align-items: center;
             background: #ffffff;
             padding: 8px 12px;
             border-bottom: 1px solid #f0f2f5;
+            cursor: grab;
+            transition: background 0.1s;
+        }
+        .param-row:active {
+            cursor: grabbing;
+        }
+        .param-row.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+        }
+        .param-row.drag-over {
+            border-top: 2px solid #3b82f6;
+        }
+        .drag-handle {
+            cursor: grab;
+            text-align: center;
+            color: #94a3b8;
+            font-size: 1rem;
+            user-select: none;
+        }
+        .drag-handle:active {
+            cursor: grabbing;
         }
         .param-row input, .param-row textarea {
             width: 100%;
@@ -358,14 +390,15 @@
         @media (max-width: 900px) {
             .param-row, .param-table-header { grid-template-columns: 1fr 1fr; gap: 6px; }
             .param-table-header { display: none; }
+            .drag-handle { display: none; }
         }
     </style>
 </head>
 <body>
 <div class="app-container">
     <div class="hero">
-        <h1>📄 JSON生成器 · 严格按规范命名</h1>
-        <p>参数使用 "parameters" | 输出使用 "outputs" | 后缀自动补全 | 自定义文件名 | 一键复制</p>
+        <h1>📄 JSON生成器 · 拖拽排序 · 严格命名规范</h1>
+        <p>参数 "parameters" | 输出 "outputs" | 拖拽调整顺序 | 后缀自动补全</p>
     </div>
     <div class="generator-layout">
         <div class="form-panel">
@@ -412,14 +445,24 @@
 
                 <div class="params-dual">
                     <div class="param-card">
-                        <div class="param-card-header"><h3><span class="badge-param">📥 参数列表 (parameters)</span></h3></div>
-                        <div class="param-table-header"><span>参数名(name)</span><span>中文(cn)</span><span>英文(en)</span><span>默认值(default)</span><span>描述中文(desc_cn)</span><span>描述英文(desc_en)</span><span>操作</span></div>
+                        <div class="param-card-header">
+                            <h3><span class="badge-param">📥 参数列表 (parameters)</span></h3>
+                            <span class="drag-hint">⋮⋮ 拖拽左侧手柄调整顺序</span>
+                        </div>
+                        <div class="param-table-header">
+                            <span></span><span>参数名(name)</span><span>中文(cn)</span><span>英文(en)</span><span>默认值(default)</span><span>描述中文(desc_cn)</span><span>描述英文(desc_en)</span><span>操作</span>
+                        </div>
                         <div id="parametersList"></div>
                         <button id="addParameterBtn" class="add-param-btn">+ 添加参数</button>
                     </div>
                     <div class="param-card">
-                        <div class="param-card-header"><h3><span class="badge-output">📤 输出列表 (outputs)</span></h3></div>
-                        <div class="param-table-header"><span>参数名(name)</span><span>中文(cn)</span><span>英文(en)</span><span>默认值(default)</span><span>描述中文(desc_cn)</span><span>描述英文(desc_en)</span><span>操作</span></div>
+                        <div class="param-card-header">
+                            <h3><span class="badge-output">📤 输出列表 (outputs)</span></h3>
+                            <span class="drag-hint">⋮⋮ 拖拽左侧手柄调整顺序</span>
+                        </div>
+                        <div class="param-table-header">
+                            <span></span><span>参数名(name)</span><span>中文(cn)</span><span>英文(en)</span><span>默认值(default)</span><span>描述中文(desc_cn)</span><span>描述英文(desc_en)</span><span>操作</span>
+                        </div>
                         <div id="outputsList"></div>
                         <button id="addOutputBtn" class="add-param-btn">+ 添加输出</button>
                     </div>
@@ -454,9 +497,9 @@
                     <button id="downloadJsonBtn" class="success">⬇️ 下载</button>
                 </div>
                 <pre id="jsonPreview">加载中...</pre>
-                <div id="statusMsg" class="status-badge">✅ 就绪 | 严格遵循规范: parameters / outputs</div>
+                <div id="statusMsg" class="status-badge">✅ 就绪 | 拖拽手柄可调整参数/输出顺序</div>
             </div>
-            <div class="preview-card"><h4>✨ 功能说明</h4><ul style="font-size:0.8rem;margin-left:1.2rem;"><li>📋 JSON字段严格按规范: <strong>parameters</strong> 和 <strong>outputs</strong></li><li>🖼️ 图片后缀自动检测：无后缀时自动添加 .png 并提示</li><li>📋 自定义文件名 + 一键复制 + 下载JSON</li><li>🏷️ 支持动态增删标签、图片、示例、参数、输出</li><li>⚙️ 参数和输出的默认值支持任意类型（数字/字符串/布尔等）</li></ul></div>
+            <div class="preview-card"><h4>✨ 功能说明</h4><ul style="font-size:0.8rem;margin-left:1.2rem;"><li>🎯 <strong>拖拽排序</strong>：点击左侧 ⋮⋮ 手柄拖动调整参数/输出顺序</li><li>📋 JSON字段严格按规范: <strong>parameters</strong> 和 <strong>outputs</strong></li><li>🖼️ 图片后缀自动检测：无后缀时自动添加 .png 并提示</li><li>📋 自定义文件名 + 一键复制 + 下载JSON</li><li>🏷️ 支持动态增删标签、图片、示例、参数、输出</li></ul></div>
         </div>
     </div>
 </div>
@@ -527,80 +570,160 @@
         exampleListDiv.innerHTML = examplesArray.map(ex => `<div class="ex-item">${escapeHtml(ex)} <button class="remove-btn" data-type="example" data-value="${escapeHtml(ex)}">✖</button></div>`).join('');
     }
     
-    // 渲染 parameters 列表
+    // 创建带拖拽手柄的行
+    function createParamRow(item, idx, type) {
+        const row = document.createElement('div');
+        row.className = 'param-row';
+        row.setAttribute('data-original-idx', idx);
+        row.setAttribute('data-type', type);
+        row.innerHTML = `
+            <div class="drag-handle" draggable="true">⋮⋮</div>
+            <input type="text" value="${escapeHtml(item.name)}" placeholder="参数名" data-field="name">
+            <input type="text" value="${escapeHtml(item.cn)}" placeholder="中文" data-field="cn">
+            <input type="text" value="${escapeHtml(item.en)}" placeholder="英文" data-field="en">
+            <input type="text" value="${escapeHtml(String(item.default))}" placeholder="默认值(任意)" data-field="default">
+            <textarea rows="1" placeholder="描述中文" data-field="desc_cn">${escapeHtml(item.desc_cn)}</textarea>
+            <textarea rows="1" placeholder="描述英文" data-field="desc_en">${escapeHtml(item.desc_en)}</textarea>
+            <button class="delete-param-btn">🗑️</button>
+        `;
+        return row;
+    }
+    
+    // 设置拖拽排序 (使用 HTML5 Drag and Drop)
+    function setupDragAndDrop(container, array, renderFunc) {
+        let dragSourceIndex = null;
+        
+        container.querySelectorAll('.param-row').forEach(row => {
+            const handle = row.querySelector('.drag-handle');
+            if (!handle) return;
+            
+            handle.setAttribute('draggable', 'true');
+            
+            handle.ondragstart = (e) => {
+                const rowEl = handle.closest('.param-row');
+                dragSourceIndex = Array.from(container.children).indexOf(rowEl);
+                e.dataTransfer.setData('text/plain', dragSourceIndex);
+                e.dataTransfer.effectAllowed = 'move';
+                rowEl.classList.add('dragging');
+            };
+            
+            handle.ondragend = (e) => {
+                container.querySelectorAll('.param-row').forEach(r => r.classList.remove('dragging', 'drag-over'));
+                dragSourceIndex = null;
+            };
+            
+            handle.ondragover = (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                const targetRow = handle.closest('.param-row');
+                if (targetRow) targetRow.classList.add('drag-over');
+            };
+            
+            handle.ondragleave = (e) => {
+                const targetRow = handle.closest('.param-row');
+                if (targetRow) targetRow.classList.remove('drag-over');
+            };
+            
+            handle.ondrop = (e) => {
+                e.preventDefault();
+                const targetRow = handle.closest('.param-row');
+                targetRow.classList.remove('drag-over');
+                
+                const targetIndex = Array.from(container.children).indexOf(targetRow);
+                if (dragSourceIndex !== null && dragSourceIndex !== targetIndex) {
+                    // 重排数组
+                    const [movedItem] = array.splice(dragSourceIndex, 1);
+                    array.splice(targetIndex, 0, movedItem);
+                    renderFunc();
+                    updatePreview();
+                }
+            };
+        });
+    }
+    
+    // 渲染 parameters 列表（带拖拽）
     function renderParameters() {
         parametersContainer.innerHTML = '';
         parametersArray.forEach((param, idx) => {
-            const row = document.createElement('div'); row.className = 'param-row';
-            row.innerHTML = `
-                <input type="text" value="${escapeHtml(param.name)}" placeholder="参数名" data-param-idx="${idx}" data-field="name">
-                <input type="text" value="${escapeHtml(param.cn)}" placeholder="中文" data-param-idx="${idx}" data-field="cn">
-                <input type="text" value="${escapeHtml(param.en)}" placeholder="英文" data-param-idx="${idx}" data-field="en">
-                <input type="text" value="${escapeHtml(String(param.default))}" placeholder="默认值(任意)" data-param-idx="${idx}" data-field="default">
-                <textarea rows="1" placeholder="描述中文" data-param-idx="${idx}" data-field="desc_cn">${escapeHtml(param.desc_cn)}</textarea>
-                <textarea rows="1" placeholder="描述英文" data-param-idx="${idx}" data-field="desc_en">${escapeHtml(param.desc_en)}</textarea>
-                <button class="delete-param-btn" data-delete-param="${idx}">🗑️</button>
-            `;
+            const row = createParamRow(param, idx, 'param');
             parametersContainer.appendChild(row);
         });
-        // 绑定事件
-        parametersContainer.querySelectorAll('input, textarea').forEach(el => {
-            el.removeEventListener('input', handleParameterChange);
-            el.addEventListener('input', handleParameterChange);
-        });
-        parametersContainer.querySelectorAll('.delete-param-btn').forEach(btn => {
-            btn.onclick = () => {
-                const idx = btn.getAttribute('data-delete-param');
-                if (idx !== null) { parametersArray.splice(parseInt(idx), 1); renderParameters(); updatePreview(); }
+        
+        // 绑定输入事件和删除事件
+        parametersContainer.querySelectorAll('.param-row').forEach(row => {
+            const inputs = row.querySelectorAll('input, textarea');
+            inputs.forEach(input => {
+                input.removeEventListener('input', handleParameterInput);
+                input.addEventListener('input', handleParameterInput);
+            });
+            const delBtn = row.querySelector('.delete-param-btn');
+            delBtn.onclick = () => {
+                const rowIdx = Array.from(parametersContainer.children).indexOf(row);
+                if (rowIdx !== -1) {
+                    parametersArray.splice(rowIdx, 1);
+                    renderParameters();
+                    updatePreview();
+                }
             };
         });
+        
+        setupDragAndDrop(parametersContainer, parametersArray, renderParameters);
     }
-
-    // 渲染 outputs 列表
+    
+    // 渲染 outputs 列表（带拖拽）
     function renderOutputs() {
         outputsContainer.innerHTML = '';
         outputsArray.forEach((output, idx) => {
-            const row = document.createElement('div'); row.className = 'param-row';
-            row.innerHTML = `
-                <input type="text" value="${escapeHtml(output.name)}" placeholder="输出名" data-output-idx="${idx}" data-field="name">
-                <input type="text" value="${escapeHtml(output.cn)}" placeholder="中文" data-output-idx="${idx}" data-field="cn">
-                <input type="text" value="${escapeHtml(output.en)}" placeholder="英文" data-output-idx="${idx}" data-field="en">
-                <input type="text" value="${escapeHtml(String(output.default))}" placeholder="默认值(任意)" data-output-idx="${idx}" data-field="default">
-                <textarea rows="1" placeholder="描述中文" data-output-idx="${idx}" data-field="desc_cn">${escapeHtml(output.desc_cn)}</textarea>
-                <textarea rows="1" placeholder="描述英文" data-output-idx="${idx}" data-field="desc_en">${escapeHtml(output.desc_en)}</textarea>
-                <button class="delete-param-btn" data-delete-output="${idx}">🗑️</button>
-            `;
+            const row = createParamRow(output, idx, 'output');
             outputsContainer.appendChild(row);
         });
-        outputsContainer.querySelectorAll('input, textarea').forEach(el => {
-            el.removeEventListener('input', handleOutputChange);
-            el.addEventListener('input', handleOutputChange);
-        });
-        outputsContainer.querySelectorAll('.delete-param-btn').forEach(btn => {
-            btn.onclick = () => {
-                const idx = btn.getAttribute('data-delete-output');
-                if (idx !== null) { outputsArray.splice(parseInt(idx), 1); renderOutputs(); updatePreview(); }
+        
+        outputsContainer.querySelectorAll('.param-row').forEach(row => {
+            const inputs = row.querySelectorAll('input, textarea');
+            inputs.forEach(input => {
+                input.removeEventListener('input', handleOutputInput);
+                input.addEventListener('input', handleOutputInput);
+            });
+            const delBtn = row.querySelector('.delete-param-btn');
+            delBtn.onclick = () => {
+                const rowIdx = Array.from(outputsContainer.children).indexOf(row);
+                if (rowIdx !== -1) {
+                    outputsArray.splice(rowIdx, 1);
+                    renderOutputs();
+                    updatePreview();
+                }
             };
         });
+        
+        setupDragAndDrop(outputsContainer, outputsArray, renderOutputs);
     }
-
-    function handleParameterChange(e) {
-        const idx = e.target.getAttribute('data-param-idx');
+    
+    function handleParameterInput(e) {
+        const row = e.target.closest('.param-row');
+        if (!row) return;
+        const rowIdx = Array.from(parametersContainer.children).indexOf(row);
+        if (rowIdx === -1) return;
+        
         const field = e.target.getAttribute('data-field');
-        if (idx !== null && parametersArray[idx]) {
-            parametersArray[idx][field] = e.target.value;
+        if (field && parametersArray[rowIdx]) {
+            parametersArray[rowIdx][field] = e.target.value;
             updatePreview();
         }
     }
-    function handleOutputChange(e) {
-        const idx = e.target.getAttribute('data-output-idx');
+    
+    function handleOutputInput(e) {
+        const row = e.target.closest('.param-row');
+        if (!row) return;
+        const rowIdx = Array.from(outputsContainer.children).indexOf(row);
+        if (rowIdx === -1) return;
+        
         const field = e.target.getAttribute('data-field');
-        if (idx !== null && outputsArray[idx]) {
-            outputsArray[idx][field] = e.target.value;
+        if (field && outputsArray[rowIdx]) {
+            outputsArray[rowIdx][field] = e.target.value;
             updatePreview();
         }
     }
-
+    
     function renderAll() {
         renderImageList();
         renderTagList();
@@ -644,7 +767,7 @@
     function updatePreview() {
         try {
             jsonPreview.textContent = JSON.stringify(buildJsonObject(), null, 2);
-            statusSpan.innerHTML = '✅ JSON有效 | 字段: parameters / outputs';
+            statusSpan.innerHTML = '✅ JSON有效 | 字段: parameters / outputs | 支持拖拽排序';
             statusSpan.style.background = '#e6f7e6';
         } catch(e) { 
             jsonPreview.textContent = `// 错误: ${e.message}`;
@@ -688,7 +811,7 @@
         updatePreview();
     }
 
-    // 初始化默认数据 (参照您的示例)
+    // 初始化默认数据
     function initDefaultData() {
         if (parametersArray.length === 0) {
             parametersArray = [
